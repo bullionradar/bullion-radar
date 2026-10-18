@@ -2,7 +2,7 @@
 
 // Accounts for outside services. Leave a value empty to turn that feature off.
 const SITE_CONFIG = {
-  buttondownUsername: "", // email alerts: the last part of your buttondown.com/... address
+  buttondownUsername: "bullionradar", // email alerts: the last part of your buttondown.com/... address
   goatcounterCode: "bullionradar", // visitor counter: the "code" part of code.goatcounter.com
   showVisitorCount: true, // show the total visitor count in the footer
 };
