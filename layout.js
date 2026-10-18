@@ -4,8 +4,18 @@
 const SITE_CONFIG = {
   buttondownUsername: "bullionradar", // email alerts: the last part of your buttondown.com/... address
   goatcounterCode: "bullionradar", // visitor counter: the "code" part of code.goatcounter.com
-  showVisitorCount: true, // show the total visitor count in the footer
+  showVisitorCount: false, // show the total in the footer (turn on "Allow using the visitor counter" in GoatCounter first)
+
+  // Shop: affiliate link templates from Awin (JM Bullion) and Impact (APMEX).
+  // {url} is replaced with the dealer page. Empty = plain links that earn nothing.
+  jmbullionAffiliate: "",
+  apmexAffiliate: "",
 };
+
+// Turn a dealer page address into an affiliate link (or leave it plain if not set up).
+function affiliateLink(template, url) {
+  return template ? template.replace("{url}", encodeURIComponent(url)) : url;
+}
 
 // Coin photos (transparent PNGs cut out of product photos).
 const COIN_IMAGES = { gold: "images/gold-eagle.png", silver: "images/silver-eagle.png" };
@@ -49,7 +59,7 @@ const RADAR_MARK = `
           ${link("news.html", "news", "News")}
           ${link("melt.html", "melt", "Melt values")}
           ${link("how-it-works.html", "how", "How it works")}
-          <a href="#" class="nav-shop" aria-disabled="true">Shop<span class="soon">soon</span></a>
+          ${link("shop.html", "shop", "Shop")}
         </nav>
       </div>
     </header>
@@ -69,6 +79,8 @@ const RADAR_MARK = `
         <p><strong>Not financial advice.</strong> The Bullion Radar scale is an educational tool
         that sums up current market conditions. It isn't a recommendation to buy or sell, and
         metal prices can fall as well as rise. Do your own research before you buy.</p>
+        <p class="footer-disclosure">Bullion Radar earns a commission on purchases made through
+        links in our <a href="shop.html">shop</a>. This never affects the buy scale.</p>
         <p class="footer-meta">
           <span>&copy; ${new Date().getFullYear()} Bullion Radar</span>
           <a href="privacy.html">Privacy</a>
