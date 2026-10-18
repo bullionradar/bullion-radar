@@ -1,0 +1,30 @@
+# Checks that the Buttondown API key works, without emailing anyone:
+# it creates a draft email (drafts are never sent), then deletes it.
+# Run it by hand from the repository's Actions tab ("Run workflow").
+name: Test alert email setup
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 5
+    steps:
+      - name: Create and delete a draft in Buttondown
+        shell: powershell
+        env:
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if (-not $env:BUTTONDOWN_API_KEY) { throw 'The BUTTONDOWN_API_KEY secret is missing.' }
+          $headers = @{ Authorization = "Token $($env:BUTTONDOWN_API_KEY)" }
+          $payload = @{ subject = 'Bullion Radar setup test (draft, never sent)'; body = 'Test draft. Safe to delete.'; status = 'draft' } | ConvertTo-Json
+          $email = Invoke-RestMethod -Method Post -Uri 'https://api.buttondown.com/v1/emails' -Headers $headers -ContentType 'application/json' -Body $payload
+          Write-Host "Created draft $($email.id) with status '$($email.status)'."
+          if ($email.status -ne 'draft') { throw "Expected a draft but got status '$($email.status)'." }
+          Invoke-RestMethod -Method Delete -Uri "https://api.buttondown.com/v1/emails/$($email.id)" -Headers $headers | Out-Null
+          Write-Host 'Deleted the test draft. The Buttondown API key works.'
