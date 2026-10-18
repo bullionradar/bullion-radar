@@ -1,0 +1,44 @@
+# Sends the daily Bullion Radar email to every subscriber, Monday to Friday.
+# 11:30 UTC is 7:30 AM New York time in summer and 6:30 AM in winter.
+# Running it by hand from the Actions tab only prints a preview unless you
+# choose "send" in the run options.
+name: Daily newsletter
+
+on:
+  schedule:
+    - cron: "30 11 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      send:
+        description: "Actually send the email to subscribers? (no = preview only)"
+        type: choice
+        options: ["no", "yes"]
+        default: "no"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-newsletter
+  cancel-in-progress: false
+
+jobs:
+  newsletter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - name: Build and send the newsletter
+        env:
+          BUTTONDOWN_API_KEY: ${{ secrets.BUTTONDOWN_API_KEY }}
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ inputs.send }}" = "yes" ]; then
+            node newsletter.js --send
+          else
+            node newsletter.js
+          fi
