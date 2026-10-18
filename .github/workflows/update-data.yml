@@ -1,0 +1,46 @@
+# Refreshes prices, scores and news every 4 hours and republishes the site.
+# Can also be run by hand from the repository's Actions tab ("Run workflow").
+name: Update market data
+
+on:
+  schedule:
+    - cron: "17 */4 * * *"   # every 4 hours, at 17 minutes past (UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download data and score the factors
+        shell: powershell
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: ./update-data.ps1
+
+      - name: Save and publish if anything changed
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- live-data.js; then
+            echo "No changes."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add live-data.js
+          git commit -m "Update market data"
+          git pull --rebase
+          git push
+          gh api -X POST "repos/${{ github.repository }}/pages/builds" > /dev/null || echo "Pages will rebuild on its own."

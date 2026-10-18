@@ -1,10 +1,12 @@
 # Downloads real market data, scores the Buy Scale factors and writes live-data.js.
-# Run it by double-clicking update-data.bat.
+# Runs automatically on GitHub every few hours (.github/workflows/update-data.yml).
+# To run it on this computer instead, double-click update-data.bat.
 #
 # Sources:
 #   Yahoo Finance (no key): gold & silver COMEX futures, US Dollar Index
-#   FRED API (free key in config.json): real interest rates, inflation
-#   expectations, manufacturing output
+#   FRED API (free key): real interest rates, inflation expectations,
+#   manufacturing output. The key comes from the FRED_API_KEY environment
+#   variable (a GitHub secret) or, on this computer, from config.json.
 $ErrorActionPreference = 'Stop'
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $root = $PSScriptRoot
@@ -15,7 +17,8 @@ $inv = [Globalization.CultureInfo]::InvariantCulture
 # --- Settings ---
 $fredKey = $null
 $configPath = Join-Path $root 'config.json'
-if (Test-Path $configPath) {
+if ($env:FRED_API_KEY) { $fredKey = $env:FRED_API_KEY.Trim() }
+elseif (Test-Path $configPath) {
   $cfg = Get-Content $configPath -Raw | ConvertFrom-Json
   if ($cfg.fredApiKey -and $cfg.fredApiKey -notmatch 'PASTE') { $fredKey = $cfg.fredApiKey.Trim() }
 }
@@ -256,7 +259,7 @@ foreach ($metal in 'gold', 'silver') {
 $keep = [Math]::Min(400, $dates.Count)   # a bit over a year of trading days for the charts
 $from = $dates.Count - $keep
 $live = [ordered]@{
-  updated = (Get-Date).ToString('MMM d, yyyy h:mm tt', $inv)
+  updated = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ', $inv)   # shown in each visitor's time zone
   prices  = [ordered]@{
     dates  = $dates[$from..($dates.Count - 1)]
     gold   = @($goldVals[$from..($dates.Count - 1)] | ForEach-Object { [Math]::Round($_, 2) })

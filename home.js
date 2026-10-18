@@ -89,7 +89,7 @@ renderDial(document.getElementById("dial-silver"), "silver");
 
 document.getElementById("hero-strip").innerHTML = `
   <span>Gold-to-silver ratio <strong>${last.ratio.toFixed(1)} : 1</strong></span>
-  <span>${LIVE_DATA ? `Data as of <strong>${LIVE_DATA.updated}</strong>` : "<strong>Sample data</strong>"}</span>`;
+  <span>${LIVE_DATA ? `Data as of <strong>${LIVE_UPDATED}</strong>` : "<strong>Sample data</strong>"}</span>`;
 
 // --- Factor breakdown ---
 function renderFactors(el, metal) {

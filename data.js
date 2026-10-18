@@ -3,6 +3,13 @@
 // sample values in this file.
 const LIVE_DATA = window.LIVE || null;
 
+// When the data was last updated, in the visitor's own time zone.
+const LIVE_UPDATED = LIVE_DATA
+  ? new Date(LIVE_DATA.updated).toLocaleString("en-US", {
+      month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZoneName: "short",
+    })
+  : null;
+
 // --- Scale factors ---
 // Each factor is scored 0-100 (higher = more favorable for buying) by comparing
 // today's reading with the last 10 years (percentile). Weights add up to 100.
