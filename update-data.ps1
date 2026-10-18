@@ -27,7 +27,10 @@ elseif (Test-Path $configPath) {
 function Fmt([string]$format) { [string]::Format($inv, $format, [object[]]$args) }
 
 function Get-Yahoo([string]$symbol) {
-  $url = "https://query1.finance.yahoo.com/v8/finance/chart/$([uri]::EscapeDataString($symbol))?range=10y&interval=1d"
+  # 15 years of daily closes: 10 years for today's comparison plus room for the score history.
+  $to = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+  $from = [DateTimeOffset]::UtcNow.AddYears(-15).ToUnixTimeSeconds()
+  $url = "https://query1.finance.yahoo.com/v8/finance/chart/$([uri]::EscapeDataString($symbol))?period1=$from&period2=$to&interval=1d"
   $res = (Invoke-RestMethod -Uri $url -Headers $ua -TimeoutSec 60).chart.result[0]
   $closes = $res.indicators.quote[0].close
   $series = [ordered]@{}
@@ -47,6 +50,16 @@ function Get-Fred([string]$id, [int]$years) {
   $values = New-Object System.Collections.Generic.List[double]
   foreach ($o in $obs) { if ($o.value -ne '.') { $values.Add([double]::Parse($o.value, $inv)) } }
   , $values.ToArray()
+}
+
+# Same as Get-Fred, but keeps the dates (date -> value), for the score history.
+function Get-FredSeries([string]$id, [int]$years) {
+  $start = (Get-Date).AddYears(-$years).ToString('yyyy-MM-dd')
+  $url = "https://api.stlouisfed.org/fred/series/observations?series_id=$id&api_key=$fredKey&file_type=json&observation_start=$start"
+  $obs = (Invoke-RestMethod -Uri $url -TimeoutSec 60).observations
+  $series = [ordered]@{}
+  foreach ($o in $obs) { if ($o.value -ne '.') { $series[$o.date] = [double]::Parse($o.value, $inv) } }
+  $series
 }
 
 # Share of past readings that are below the current one, 0-100.
@@ -141,6 +154,92 @@ if ($fredKey) {
 } else {
   $missing.Add('Real interest rates'); $missing.Add('Inflation expectations'); $missing.Add('Industrial demand')
   Write-Warning 'No FRED key in config.json, so real rates, inflation and manufacturing are skipped.'
+}
+
+# --- Scale history ---
+# Weekly factor scores for the last 3 years, worked out with the same rules as today's
+# scores. Each past score only uses data that was available on that date (a trailing
+# 10-year comparison, and monthly figures only from about when they were published).
+# The site combines these into the overall score using the weights in data.js.
+Write-Host 'Working out the scale history...'
+
+# Line a series (date -> value) up with the trading days, carrying the last known value
+# forward. lagDays delays each value to roughly when it was published.
+function Align-ToDates($series, [string[]]$days, [int]$lagDays = 0) {
+  $keys = @($series.Keys)
+  $out = New-Object double[] $days.Count
+  $k = -1
+  for ($i = 0; $i -lt $days.Count; $i++) {
+    while ($k + 1 -lt $keys.Count -and ([datetime]$keys[$k + 1]).AddDays($lagDays).ToString('yyyy-MM-dd') -le $days[$i]) { $k++ }
+    $out[$i] = if ($k -ge 0) { $series[$keys[$k]] } else { [double]::NaN }
+  }
+  , $out
+}
+
+# Percentile of day i against the 10 years before it (skipping days with no data).
+function Get-HistPercentile([double[]]$arr, [int]$i) {
+  $cur = $arr[$i]
+  if ([double]::IsNaN($cur)) { return $null }
+  $below = 0; $n = 0
+  for ($k = [Math]::Max(0, $i - $TenYears + 1); $k -le $i; $k++) {
+    $v = $arr[$k]
+    if (-not [double]::IsNaN($v)) { $n++; if ($v -lt $cur) { $below++ } }
+  }
+  if ($n -lt 500) { return $null }   # not enough history yet to judge
+  [int][Math]::Round(100 * $below / $n)
+}
+
+$raw = @{}
+foreach ($metal in 'gold', 'silver') {
+  $vals = if ($metal -eq 'gold') { $goldVals } else { $silverVals }
+  $s = Get-Stretch $vals
+  $aligned = New-Object double[] $dates.Count
+  for ($i = 0; $i -lt $dates.Count; $i++) { $aligned[$i] = if ($i -ge 199) { $s[$i - 199] } else { [double]::NaN } }
+  $raw["stretch-$metal"] = $aligned
+}
+$raw['ratio'] = $ratioVals
+try { $raw['dollar'] = Align-ToDates (Get-Yahoo 'DX-Y.NYB') $dates } catch { Write-Warning "Dollar history failed: $($_.Exception.Message)" }
+if ($fredKey) {
+  try { $raw['realRates'] = Align-ToDates (Get-FredSeries 'DFII10' 14) $dates 1 } catch { Write-Warning "Real rate history failed: $($_.Exception.Message)" }
+  try { $raw['inflation'] = Align-ToDates (Get-FredSeries 'T5YIE' 14) $dates 1 } catch { Write-Warning "Inflation history failed: $($_.Exception.Message)" }
+  try {
+    $ipSeries = Get-FredSeries 'IPMAN' 15
+    $ipKeys = @($ipSeries.Keys)
+    $growth = [ordered]@{}
+    for ($i = 12; $i -lt $ipKeys.Count; $i++) { $growth[$ipKeys[$i]] = $ipSeries[$ipKeys[$i]] / $ipSeries[$ipKeys[$i - 12]] - 1 }
+    $raw['industrial'] = Align-ToDates $growth $dates 45
+  } catch { Write-Warning "Manufacturing history failed: $($_.Exception.Message)" }
+}
+
+# Which raw series each factor uses, and whether a higher reading is better (+1) or worse (-1).
+$historyFactors = @{
+  gold   = [ordered]@{ priceTrend = @('stretch-gold', -1); dollar = @('dollar', -1); realRates = @('realRates', -1); inflation = @('inflation', 1); ratio = @('ratio', -1) }
+  silver = [ordered]@{ priceTrend = @('stretch-silver', -1); dollar = @('dollar', -1); realRates = @('realRates', -1); industrial = @('industrial', 1); ratio = @('ratio', 1) }
+}
+
+# One point a week (every 5 trading days) for the last 3 years, always ending on the latest day.
+$points = New-Object System.Collections.Generic.List[int]
+for ($i = $dates.Count - 1; $i -ge [Math]::Max(0, $dates.Count - 756); $i -= 5) { $points.Insert(0, $i) }
+
+$scoreHistory = [ordered]@{
+  dates  = @($points | ForEach-Object { $dates[$_] })
+  prices = [ordered]@{
+    gold   = @($points | ForEach-Object { [Math]::Round($goldVals[$_], 2) })
+    silver = @($points | ForEach-Object { [Math]::Round($silverVals[$_], 3) })
+  }
+  gold   = [ordered]@{}
+  silver = [ordered]@{}
+}
+foreach ($metal in 'gold', 'silver') {
+  foreach ($key in $historyFactors[$metal].Keys) {
+    $name, $direction = $historyFactors[$metal][$key]
+    $arr = $raw[$name]
+    $scoreHistory[$metal][$key] = @(foreach ($i in $points) {
+      if ($null -eq $arr) { $null; continue }
+      $p = Get-HistPercentile $arr $i
+      if ($null -eq $p) { $null } elseif ($direction -gt 0) { $p } else { 100 - $p }
+    })
+  }
 }
 
 # --- News headlines (headline + link only; we never copy article text) ---
@@ -255,6 +354,58 @@ foreach ($metal in 'gold', 'silver') {
   }
 }
 
+# --- Silver alert email ---
+# When silver's overall score moves up into Favorable (61+), email the alert subscribers
+# once through Buttondown. It re-arms only after the score drops back to 55 or below, so
+# a score hovering around 60 doesn't send an email every few hours.
+# The weights are read from data.js so they always match the site.
+$alertStatePath = Join-Path $root 'alert-state.json'
+try {
+  $dataJs = Get-Content (Join-Path $root 'data.js') -Raw
+  $silverBlock = [regex]::Match($dataJs, '(?s)silver: \[(.*?)\],').Groups[1].Value
+  $weights = @{}
+  foreach ($m in [regex]::Matches($silverBlock, 'key: "(\w+)"[^}]*?weight: (\d+)')) { $weights[$m.Groups[1].Value] = [int]$m.Groups[2].Value }
+  $sum = 0; $wsum = 0
+  foreach ($k in $weights.Keys) { if ($factors.silver.Contains($k)) { $sum += $factors.silver[$k].score * $weights[$k]; $wsum += $weights[$k] } }
+  if ($wsum -eq 0) { throw 'no silver factors to score' }
+  $silverScore = [int][Math]::Round($sum / $wsum)
+
+  $firstRun = -not (Test-Path $alertStatePath)
+  $state = if ($firstRun) { [pscustomobject]@{ silverFavorable = $false; lastAlert = $null } } else { Get-Content $alertStatePath -Raw | ConvertFrom-Json }
+  $wasFavorable = [bool]$state.silverFavorable
+  $nowFavorable = if ($silverScore -ge 61) { $true } elseif ($silverScore -le 55) { $false } else { $wasFavorable }
+  Write-Host "Silver alert: score $silverScore, favorable before=$wasFavorable now=$nowFavorable"
+
+  if ($nowFavorable -and -not $wasFavorable -and -not $firstRun) {
+    if ($env:BUTTONDOWN_API_KEY) {
+      $names = @{ ratio = 'Gold-to-silver ratio'; priceTrend = 'Price vs. 200-day average'; dollar = 'US dollar strength'; industrial = 'Industrial demand'; realRates = 'Real interest rates' }
+      $helping = @($factors.silver.Keys | Where-Object { $factors.silver[$_].score -ge 60 } |
+        ForEach-Object { "- **$($names[$_])** ($($factors.silver[$_].score)/100): $($factors.silver[$_].reading)" }) -join "`n"
+      $body = @"
+Silver just moved to **Favorable** on the Bullion Radar buy scale, with a score of **$silverScore out of 100**.
+
+Silver is at **`$$([Math]::Round($silverVals[-1], 2))** per ounce.
+
+What's helping the score:
+$helping
+
+[See today's full reading](https://bullionradar.github.io/bullion-radar/)
+
+*Not financial advice. The buy scale sums up current market conditions; prices can still fall.*
+"@
+      $payload = @{ subject = "Silver just moved to Favorable ($silverScore/100)"; body = $body; status = 'about_to_send' } | ConvertTo-Json
+      $headers = @{ Authorization = "Token $($env:BUTTONDOWN_API_KEY)"; 'X-Buttondown-Live-Dangerously' = 'true' }
+      Invoke-RestMethod -Method Post -Uri 'https://api.buttondown.com/v1/emails' -Headers $headers -ContentType 'application/json; charset=utf-8' -Body ([Text.Encoding]::UTF8.GetBytes($payload)) -TimeoutSec 60 | Out-Null
+      Write-Host 'Silver alert email sent.'
+      $state.lastAlert = (Get-Date).ToUniversalTime().ToString('yyyy-MM-ddTHH:mm:ssZ', $inv)
+    } else {
+      Write-Warning 'Silver moved to Favorable, but there is no BUTTONDOWN_API_KEY, so no email was sent.'
+    }
+  }
+  $state.silverFavorable = $nowFavorable
+  $state | ConvertTo-Json | Set-Content -Path $alertStatePath -Encoding UTF8
+} catch { Write-Warning "Silver alert check failed: $($_.Exception.Message)" }
+
 # --- Write live-data.js ---
 $keep = [Math]::Min(400, $dates.Count)   # a bit over a year of trading days for the charts
 $from = $dates.Count - $keep
@@ -268,6 +419,7 @@ $live = [ordered]@{
   factors = $factors
   news    = @($newsOut)
   factorNews = $factorNews
+  scoreHistory = $scoreHistory
   missing = $missing.ToArray()
 }
 $json = $live | ConvertTo-Json -Depth 6 -Compress

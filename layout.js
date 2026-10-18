@@ -1,5 +1,12 @@
 // Shared header, footer and small building blocks, so every page stays in sync.
 
+// Accounts for outside services. Leave a value empty to turn that feature off.
+const SITE_CONFIG = {
+  buttondownUsername: "", // email alerts: the last part of your buttondown.com/... address
+  goatcounterCode: "",    // visitor counter: the "code" part of code.goatcounter.com
+  showVisitorCount: true, // show the total visitor count in the footer
+};
+
 // Coin photos (transparent PNGs cut out of product photos).
 const COIN_IMAGES = { gold: "images/gold-eagle.png", silver: "images/silver-eagle.png" };
 const coinImg = (metal, cls = "") =>
@@ -40,8 +47,9 @@ const RADAR_MARK = `
         <nav class="nav" aria-label="Main">
           ${link("index.html", "home", `Today<span class="long">'s reading</span>`)}
           ${link("news.html", "news", "News")}
+          ${link("melt.html", "melt", "Melt values")}
           ${link("how-it-works.html", "how", "How it works")}
-          <a href="#" aria-disabled="true">Shop<span class="soon">soon</span></a>
+          <a href="#" class="nav-shop" aria-disabled="true">Shop<span class="soon">soon</span></a>
         </nav>
       </div>
     </header>
@@ -61,8 +69,34 @@ const RADAR_MARK = `
         <p><strong>Not financial advice.</strong> The Bullion Radar scale is an educational tool
         that sums up current market conditions. It isn't a recommendation to buy or sell, and
         metal prices can fall as well as rise. Do your own research before you buy.</p>
-        <p>&copy; ${new Date().getFullYear()} Bullion Radar</p>
+        <p class="footer-meta">
+          <span>&copy; ${new Date().getFullYear()} Bullion Radar</span>
+          <a href="privacy.html">Privacy</a>
+          <span id="visitor-count" hidden></span>
+        </p>
       </div>
     </footer>`
   );
+
+  // Visitor counter (GoatCounter: no cookies, no personal data).
+  const gc = SITE_CONFIG.goatcounterCode;
+  if (gc) {
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = "https://gc.zgo.at/count.js";
+    s.dataset.goatcounter = `https://${gc}.goatcounter.com/count`;
+    document.body.appendChild(s);
+
+    if (SITE_CONFIG.showVisitorCount) {
+      fetch(`https://${gc}.goatcounter.com/counter/TOTAL.json`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (!data || !data.count) return;
+          const el = document.getElementById("visitor-count");
+          el.textContent = `${data.count} visitors`;
+          el.hidden = false;
+        })
+        .catch(() => {});
+    }
+  }
 })();

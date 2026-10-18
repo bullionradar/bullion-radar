@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coin melt values | Bullion Radar</title>
+  <meta name="description" content="What the gold or silver in your coins is worth at today's price: Eagles, Morgan dollars, 90% silver, war nickels and more.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="melt">
+  <main>
+    <section class="hero" data-hero-coin="silver">
+      <div class="container">
+        <h1>Coin melt values</h1>
+        <p>What the gold or silver in your coins is worth at today's price.</p>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="melt-calc">
+        <div class="melt-inputs">
+          <label class="field">
+            <span>Coin</span>
+            <select id="melt-coin"></select>
+          </label>
+          <label class="field field-qty">
+            <span>How many</span>
+            <input id="melt-qty" type="number" min="0" step="1" value="1" inputmode="numeric">
+          </label>
+        </div>
+        <div class="melt-result" aria-live="polite">
+          <span class="melt-label">Melt value</span>
+          <strong id="melt-total"></strong>
+          <span class="melt-detail" id="melt-detail"></span>
+        </div>
+      </div>
+      <p class="fineprint" id="melt-prices"></p>
+    </section>
+
+    <section class="section container">
+      <div class="section-head"><h2>All coins at today's price</h2></div>
+      <div class="melt-tables">
+        <table class="factor-table melt-table" id="melt-silver"></table>
+        <table class="factor-table melt-table" id="melt-gold"></table>
+      </div>
+      <p class="fineprint">Melt value is the value of the pure metal only. Dealers usually pay a
+        little less than melt and sell for more. Collectible coins in good condition can be worth
+        far more than melt. Older circulated coins may weigh slightly less than new because of wear.</p>
+    </section>
+  </main>
+
+  <script src="live-data.js"></script>
+  <script src="data.js"></script>
+  <script src="layout.js"></script>
+  <script src="melt.js"></script>
+</body>
+</html>

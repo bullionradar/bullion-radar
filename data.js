@@ -95,6 +95,48 @@ function overallScore(factors) {
   return Math.round(used.reduce((sum, f) => sum + f.score * f.weight, 0) / total);
 }
 
+// --- Daily one-sentence summary ---
+// Phrases for when a factor is helping (score 60+) or holding the score back (40 or less).
+const SUMMARY_PHRASES = {
+  priceTrend: {
+    help: (m) => `${m} isn't stretched above its long-term average`,
+    hurt: (m) => `${m} has run well above its long-term average`,
+  },
+  dollar: { help: () => "the US dollar is weaker than usual", hurt: () => "the US dollar is strong" },
+  realRates: { help: () => "real interest rates are low", hurt: () => "real interest rates are unusually high" },
+  inflation: { help: () => "inflation expectations are elevated", hurt: () => "inflation expectations are subdued" },
+  industrial: { help: () => "manufacturing output is growing", hurt: () => "manufacturing output is weak" },
+  ratio: {
+    help: (m, other) => `${m} is cheap compared to ${other}`,
+    hurt: (m, other) => `${m} is expensive compared to ${other}`,
+  },
+};
+
+function joinPhrases(list) {
+  return list.length === 1 ? list[0] : `${list[0]} and ${list[1]}`;
+}
+
+function dailySummary(metal) {
+  const m = metal === "gold" ? "gold" : "silver";
+  const other = metal === "gold" ? "silver" : "gold";
+  const Label = metal === "gold" ? "Gold" : "Silver";
+  const factors = SCALE[metal].filter((f) => f.score != null);
+  // Rank by how much each factor pushes the score up or down, weighted by importance.
+  const pull = (f) => (f.score - 50) * f.weight;
+  const helps = factors.filter((f) => f.score >= 60).sort((a, b) => pull(b) - pull(a)).slice(0, 2)
+    .map((f) => SUMMARY_PHRASES[f.key].help(m, other));
+  const hurts = factors.filter((f) => f.score <= 40).sort((a, b) => pull(a) - pull(b)).slice(0, 2)
+    .map((f) => SUMMARY_PHRASES[f.key].hurt(m, other));
+  const band = bandFor(overallScore(SCALE[metal])).label;
+
+  if (helps.length && hurts.length) {
+    return `${Label} reads ${band}: it helps that ${joinPhrases(helps)}, but ${joinPhrases(hurts)}.`;
+  }
+  if (helps.length) return `${Label} reads ${band}, mainly because ${joinPhrases(helps)}.`;
+  if (hurts.length) return `${Label} reads ${band}, mainly because ${joinPhrases(hurts)}.`;
+  return `${Label} reads ${band}, with no signal far from its usual range.`;
+}
+
 if (LIVE_DATA) {
   for (const metal of ["gold", "silver"]) {
     for (const f of SCALE[metal]) {

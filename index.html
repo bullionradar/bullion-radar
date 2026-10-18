@@ -23,6 +23,18 @@
           <div id="dial-silver"></div>
         </div>
         <div class="hero-strip" id="hero-strip"></div>
+        <form class="alert-signup" id="alert-signup" method="post" target="_blank" hidden>
+          <div class="alert-copy">
+            <strong>Get alerts when silver moves to Favorable</strong>
+            <span>One email when it happens. No spam, and you can unsubscribe anytime.</span>
+          </div>
+          <div class="alert-fields">
+            <input type="email" name="email" required placeholder="you@example.com" aria-label="Email address" autocomplete="email">
+            <input type="hidden" name="tag" value="silver-favorable">
+            <button type="submit">Get alerts</button>
+          </div>
+          <a class="alert-privacy" href="privacy.html">How we use your email</a>
+        </form>
       </div>
     </section>
 
@@ -35,6 +47,23 @@
         <div id="factors-gold"></div>
         <div id="factors-silver"></div>
       </div>
+    </section>
+
+    <section class="section container" id="scale-history" hidden>
+      <div class="section-head">
+        <h2>Scale history</h2>
+        <div class="ranges" id="history-metal">
+          <button data-metal="gold" class="active">Gold</button>
+          <button data-metal="silver">Silver</button>
+        </div>
+      </div>
+      <div class="chart-panel">
+        <h3 id="history-title">Gold buy scale and price, last 3 years</h3>
+        <p>Weekly. Shaded bands show the scale's ranges, from risky buy at the bottom to very favorable at the top.</p>
+        <div class="chart-wrap chart-tall"><canvas id="history-chart" role="img" aria-label="Buy scale history chart"></canvas></div>
+      </div>
+      <p class="fineprint">Scores before October 18, 2026 were calculated afterwards with the same
+        rules, using only data that was available on each date. Past readings don't predict future prices.</p>
     </section>
 
     <section class="section container" id="history">

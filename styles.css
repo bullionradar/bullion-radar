@@ -419,7 +419,7 @@ a.news-row:hover .news-title { color: var(--gold-deep); text-decoration: underli
   .gauge { margin-top: 10px; }
   .gauge-ends { font-size: 0.62rem; }
   .qp-foot { flex-direction: column; gap: 0; font-size: 0.78rem; margin-top: 8px; padding-top: 8px; }
-  .nav .long { display: none; }
+  .nav .long, .nav-shop { display: none; }
   .nav a { font-size: 0.9rem; }
   .radar-hero h1 { font-size: 1.35rem; }
   .lede { font-size: 0.92rem; margin-bottom: 18px; }
@@ -430,3 +430,99 @@ a.news-row:hover .news-title { color: var(--gold-deep); text-decoration: underli
   .nav { gap: 2px 16px; }
   .factor-table { display: block; overflow-x: auto; }
 }
+
+/* Daily summary sentence under each quote panel */
+.qp-summary { margin: 12px 0 0; font-size: 0.88rem; line-height: 1.5; color: #cfcfcf; }
+@media (max-width: 560px) { .qp-summary { font-size: 0.74rem; } }
+
+/* Melt value calculator */
+.melt-calc {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px 32px;
+  align-items: end;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 24px;
+}
+.melt-inputs { display: grid; grid-template-columns: 1fr 140px; gap: 16px; }
+.field { display: grid; gap: 6px; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+.field select, .field input {
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--ink);
+  background: #fff;
+  border: 1px solid #b9c0c9;
+  border-radius: 4px;
+  padding: 10px 12px;
+  width: 100%;
+}
+.field select:focus, .field input:focus { outline: 2px solid var(--gold); outline-offset: 1px; }
+.melt-result { display: grid; text-align: right; min-width: 220px; }
+.melt-label { font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+.melt-result strong { font-size: 2.2rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.15; }
+.melt-detail { font-size: 0.85rem; color: var(--muted); }
+.melt-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 24px 48px; align-items: start; }
+.melt-table td:nth-child(2), .melt-table td:nth-child(3),
+.melt-table th:nth-child(2), .melt-table th:nth-child(3) { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+@media (max-width: 860px) {
+  .melt-calc { grid-template-columns: 1fr; }
+  .melt-result { text-align: left; }
+  .melt-tables { grid-template-columns: 1fr; }
+}
+@media (max-width: 560px) {
+  .melt-inputs { grid-template-columns: 1fr; }
+  .melt-calc { padding: 16px; }
+}
+.chart-tall { height: 340px; }
+
+/* Silver alert signup */
+.alert-signup {
+  max-width: 860px;
+  margin: 24px auto 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px 24px;
+  align-items: center;
+  border: 1px solid #2a2a2a;
+  border-radius: 6px;
+  padding: 16px 20px;
+  background: #0b0b0b;
+}
+.alert-copy { display: grid; gap: 2px; }
+.alert-copy strong { font-size: 1rem; }
+.alert-copy span { font-size: 0.85rem; color: var(--vault-text); }
+.alert-fields { display: flex; gap: 8px; }
+.alert-fields input[type="email"] {
+  font: inherit;
+  font-size: 0.95rem;
+  width: 240px;
+  padding: 9px 12px;
+  border-radius: 4px;
+  border: 1px solid #3a3a3a;
+  background: #161616;
+  color: var(--silver-hi);
+}
+.alert-fields input[type="email"]:focus { outline: 2px solid var(--silver); outline-offset: 1px; }
+.alert-fields button {
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 9px 16px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--silver-hi);
+  color: #000;
+  cursor: pointer;
+}
+.alert-fields button:hover { background: #fff; }
+.alert-privacy { grid-column: 1 / -1; font-size: 0.78rem; color: var(--vault-text); }
+@media (max-width: 760px) {
+  .alert-signup { grid-template-columns: 1fr; }
+  .alert-fields input[type="email"] { width: auto; flex: 1; min-width: 0; }
+}
+
+.footer-meta { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.footer-meta a { color: var(--vault-text); }

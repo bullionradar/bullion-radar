@@ -81,7 +81,8 @@ function renderDial(el, metal) {
     <div class="qp-foot">
       <span>Buy scale</span>
       <strong>${score} of 100, <span style="color:${band.color}">${band.label}</span></strong>
-    </div>`;
+    </div>
+    <p class="qp-summary">${dailySummary(metal)}</p>`;
 }
 
 renderDial(document.getElementById("dial-gold"), "gold");
@@ -90,6 +91,13 @@ renderDial(document.getElementById("dial-silver"), "silver");
 document.getElementById("hero-strip").innerHTML = `
   <span>Gold-to-silver ratio <strong>${last.ratio.toFixed(1)} : 1</strong></span>
   <span>${LIVE_DATA ? `Data as of <strong>${LIVE_UPDATED}</strong>` : "<strong>Sample data</strong>"}</span>`;
+
+// --- Silver alert signup (shown once a Buttondown account is set in layout.js) ---
+if (SITE_CONFIG.buttondownUsername) {
+  const form = document.getElementById("alert-signup");
+  form.action = `https://buttondown.com/api/emails/embed-subscribe/${encodeURIComponent(SITE_CONFIG.buttondownUsername)}`;
+  form.hidden = false;
+}
 
 // --- Factor breakdown ---
 function renderFactors(el, metal) {
@@ -212,6 +220,98 @@ document.getElementById("ranges").addEventListener("click", (e) => {
 });
 
 showRange(365);
+
+// --- Scale history ---
+// The update script sends weekly factor scores; we combine them with the same
+// weights as today's scale, so history and today always follow one set of rules.
+const scoreHistory = LIVE_DATA && LIVE_DATA.scoreHistory;
+if (scoreHistory && scoreHistory.dates && scoreHistory.dates.length > 1) {
+  document.getElementById("scale-history").hidden = false;
+
+  function historyScores(metal) {
+    const n = scoreHistory.dates.length;
+    const scores = [];
+    for (let i = 0; i < n; i++) {
+      const factors = SCALE[metal].map((f) => ({
+        weight: f.weight,
+        score: scoreHistory[metal][f.key] ? scoreHistory[metal][f.key][i] : null,
+      }));
+      scores.push(factors.some((f) => f.score != null) ? overallScore(factors) : null);
+    }
+    scores[n - 1] = overallScore(SCALE[metal]); // the latest point is today's live score
+    return scores;
+  }
+
+  // Shade the five bands of the scale behind the score line.
+  const bandShading = {
+    id: "bandShading",
+    beforeDatasetsDraw(chart) {
+      const { ctx, chartArea: area, scales } = chart;
+      let low = 0;
+      ctx.save();
+      for (const b of BANDS) {
+        const top = scales.y.getPixelForValue(b.max);
+        const bottom = scales.y.getPixelForValue(low);
+        ctx.fillStyle = b.color + "22";
+        ctx.fillRect(area.left, top, area.right - area.left, bottom - top);
+        low = b.max;
+      }
+      ctx.restore();
+    },
+  };
+
+  const historyChart = new Chart(document.getElementById("history-chart"), {
+    type: "line",
+    data: {
+      labels: scoreHistory.dates.map((d) =>
+        new Date(d + "T12:00:00").toLocaleDateString("en-US", { month: "short", year: "numeric" })),
+      datasets: [
+        { label: "Buy scale", data: [], borderColor: "#15233a", borderWidth: 2.2, yAxisID: "y", spanGaps: true },
+        { label: "Price", data: [], borderColor: "#c49a3c", borderWidth: 1.5, borderDash: [4, 3], yAxisID: "y1" },
+      ],
+    },
+    options: {
+      ...baseOptions,
+      plugins: {
+        legend: { position: "top", align: "end", labels: { boxWidth: 10, boxHeight: 10, usePointStyle: true } },
+        tooltip: {
+          callbacks: {
+            title: (items) => new Date(scoreHistory.dates[items[0].dataIndex] + "T12:00:00")
+              .toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+            label: (c) => c.datasetIndex === 0
+              ? `Buy scale: ${c.parsed.y} (${bandFor(c.parsed.y).label})`
+              : `Price: ${money(c.parsed.y)}`,
+          },
+        },
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } },
+        y: { min: 0, max: 100, position: "left", grid: { display: false }, ticks: { stepSize: 20 },
+          title: { display: true, text: "Buy scale" } },
+        y1: { position: "right", grid: { display: false }, ticks: { callback: (v) => "$" + v.toLocaleString() } },
+      },
+    },
+    plugins: [bandShading],
+  });
+
+  function showHistory(metal) {
+    const label = metal === "gold" ? "Gold" : "Silver";
+    document.getElementById("history-title").textContent = `${label} buy scale and price, last 3 years`;
+    historyChart.data.datasets[0].data = historyScores(metal);
+    historyChart.data.datasets[1].data = scoreHistory.prices[metal];
+    historyChart.data.datasets[1].label = `${label} price`;
+    historyChart.data.datasets[1].borderColor = metal === "gold" ? "#c49a3c" : "#6f7987";
+    historyChart.update();
+  }
+
+  document.getElementById("history-metal").addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    document.querySelectorAll("#history-metal button").forEach((b) => b.classList.toggle("active", b === btn));
+    showHistory(btn.dataset.metal);
+  });
+  showHistory("gold");
+}
 
 // --- News preview ---
 document.getElementById("news-preview").innerHTML = newsHighlights().map(newsCard).join("");
