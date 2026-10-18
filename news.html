@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>News | Bullion Radar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="news">
+  <main>
+    <section class="hero" data-hero-coin="silver">
+      <div class="container">
+        <h1>Precious metals news</h1>
+        <p>Gold and silver market stories from Kitco, CNBC, Reuters and others, plus
+          collector news from Numismatic News. Each headline opens the original article.</p>
+      </div>
+    </section>
+
+    <section class="section container">
+      <div class="section-head">
+        <div class="filters ranges" id="filters">
+          <button data-metal="all" class="active">All</button>
+          <button data-metal="gold">Gold</button>
+          <button data-metal="silver">Silver</button>
+          <button data-metal="coins">Coins</button>
+        </div>
+      </div>
+      <div class="news-list" id="news-list"></div>
+    </section>
+  </main>
+
+  <script src="live-data.js"></script>
+  <script src="data.js"></script>
+  <script src="layout.js"></script>
+  <script>
+    const list = document.getElementById("news-list");
+    function show(metal) {
+      list.innerHTML = NEWS.filter((n) => metal === "all" || n.tags.includes(metal)).map(newsCard).join("");
+    }
+    document.getElementById("filters").addEventListener("click", (e) => {
+      const btn = e.target.closest("button");
+      if (!btn) return;
+      document.querySelectorAll("#filters button").forEach((b) => b.classList.toggle("active", b === btn));
+      show(btn.dataset.metal);
+    });
+    show("all");
+  </script>
+</body>
+</html>

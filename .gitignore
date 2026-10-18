@@ -1,0 +1,8 @@
+# Private: holds your FRED API key. Never upload this.
+config.json
+
+# Local tools and editor settings
+.claude/
+*.log
+Thumbs.db
+desktop.ini

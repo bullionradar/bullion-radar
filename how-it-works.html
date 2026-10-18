@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>How it works | Bullion Radar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="how">
+  <main>
+    <section class="hero" data-hero-coin="gold">
+      <div class="container">
+        <h1>How the scale works</h1>
+        <p>No black box. Here's exactly what goes into each score.</p>
+      </div>
+    </section>
+
+    <section class="section container prose">
+      <h2>The short version</h2>
+      <p>For both gold and silver, we look at five market signals. Each one gets a score
+        from 0 to 100, where higher means conditions look better for buying. Some signals
+        matter more than others, so we combine them as a weighted average and show the
+        result on the scale.</p>
+
+      <h2>How each signal is scored</h2>
+      <p>We compare today's reading with the last 10 years. If a signal is more favorable
+        today than it was 80% of the time over that period, it scores 80. No guesswork:
+        anyone can check the numbers.</p>
+      <p>We take a <strong>value</strong> approach to price: the scale favors buying when
+        prices are near or below their long-term average, not when they've already run up.
+        That suits collectors who buy and hold.</p>
+
+      <h2>What the score means</h2>
+      <div class="legend" id="legend"></div>
+
+      <h2>Gold factors</h2>
+      <table class="factor-table" id="table-gold"></table>
+
+      <h2>Silver factors</h2>
+      <table class="factor-table" id="table-silver"></table>
+
+      <h2>What the scale is not</h2>
+      <p>The scale summarizes current conditions. It can't predict the future, and it isn't
+        personal financial advice. Prices can fall even when the scale reads favorable.
+        Use it as one input alongside your own research.</p>
+    </section>
+  </main>
+
+  <script src="live-data.js"></script>
+  <script src="data.js"></script>
+  <script src="layout.js"></script>
+  <script>
+    let low = 0;
+    document.getElementById("legend").innerHTML = BANDS.map((b) => {
+      const row = `<div><span class="swatch" style="background:${b.color}"></span><strong>${low}–${b.max}</strong> ${b.label}</div>`;
+      low = b.max + 1;
+      return row;
+    }).join("");
+
+    for (const metal of ["gold", "silver"]) {
+      document.getElementById("table-" + metal).innerHTML = `
+        <thead><tr><th>Factor</th><th>Weight</th><th>Favorable when…</th><th>Data</th></tr></thead>
+        <tbody>${SCALE[metal].map((f) => `
+          <tr><td><strong>${f.name}</strong></td><td>${f.weight}%</td><td>${f.favorable}</td><td>${f.source}</td></tr>`).join("")}
+        </tbody>`;
+    }
+  </script>
+</body>
+</html>
