@@ -526,3 +526,5 @@ a.news-row:hover .news-title { color: var(--gold-deep); text-decoration: underli
 
 .footer-meta { display: flex; flex-wrap: wrap; gap: 4px 20px; }
 .footer-meta a { color: var(--vault-text); }
+.alert-signup.done { grid-template-columns: 1fr; border-color: #3d8a6c; }
+.alert-fields button:disabled { opacity: 0.6; cursor: default; }

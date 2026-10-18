@@ -97,6 +97,28 @@ if (SITE_CONFIG.buttondownUsername) {
   const form = document.getElementById("alert-signup");
   form.action = `https://buttondown.com/api/emails/embed-subscribe/${encodeURIComponent(SITE_CONFIG.buttondownUsername)}`;
   form.hidden = false;
+
+  // Sign up in the background so visitors stay here and see our own thank-you,
+  // instead of Buttondown's default page. If the request can't be made at all,
+  // fall back to a normal form submit so the signup still goes through.
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const button = form.querySelector("button");
+    button.disabled = true;
+    button.textContent = "Signing up…";
+    try {
+      await fetch(form.action, { method: "POST", mode: "no-cors", body: new FormData(form) });
+      form.classList.add("done");
+      form.innerHTML = `
+        <div class="alert-copy" role="status">
+          <strong>Thanks for signing up for Bullion Radar price alerts!</strong>
+          <span>Check your inbox for a confirmation email and click the link to finish.
+            We'll email you as soon as silver moves to Favorable.</span>
+        </div>`;
+    } catch {
+      form.submit();
+    }
+  });
 }
 
 // --- Factor breakdown ---
