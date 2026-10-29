@@ -10,7 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const SITE_URL = "https://bullionradar.github.io/bullion-radar/";
+const SITE_URL = "https://bullionreads.com/";
 const MAX_DATA_AGE_HOURS = 18;
 
 // Run the site's scripts in a sandbox that looks enough like a browser for them.

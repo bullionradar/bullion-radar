@@ -389,7 +389,7 @@ Silver is at **`$$([Math]::Round($silverVals[-1], 2))** per ounce.
 What's helping the score:
 $helping
 
-[See today's full reading](https://bullionradar.github.io/bullion-radar/)
+[See today's full reading](https://bullionreads.com/)
 
 *Not financial advice. The buy scale sums up current market conditions; prices can still fall.*
 "@
