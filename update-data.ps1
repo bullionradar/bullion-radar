@@ -382,7 +382,7 @@ try {
       $helping = @($factors.silver.Keys | Where-Object { $factors.silver[$_].score -ge 60 } |
         ForEach-Object { "- **$($names[$_])** ($($factors.silver[$_].score)/100): $($factors.silver[$_].reading)" }) -join "`n"
       $body = @"
-Silver just moved to **Favorable** on the Bullion Radar buy scale, with a score of **$silverScore out of 100**.
+Silver just moved to **Favorable** on the Bullion Reads buy scale, with a score of **$silverScore out of 100**.
 
 Silver is at **`$$([Math]::Round($silverVals[-1], 2))** per ounce.
 

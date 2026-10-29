@@ -22,7 +22,7 @@ jobs:
           $ErrorActionPreference = 'Stop'
           if (-not $env:BUTTONDOWN_API_KEY) { throw 'The BUTTONDOWN_API_KEY secret is missing.' }
           $headers = @{ Authorization = "Token $($env:BUTTONDOWN_API_KEY)" }
-          $payload = @{ subject = 'Bullion Radar setup test (draft, never sent)'; body = 'Test draft. Safe to delete.'; status = 'draft' } | ConvertTo-Json
+          $payload = @{ subject = 'Bullion Reads setup test (draft, never sent)'; body = 'Test draft. Safe to delete.'; status = 'draft' } | ConvertTo-Json
           $email = Invoke-RestMethod -Method Post -Uri 'https://api.buttondown.com/v1/emails' -Headers $headers -ContentType 'application/json' -Body $payload
           Write-Host "Created draft $($email.id) with status '$($email.status)'."
           if ($email.status -ne 'draft') { throw "Expected a draft but got status '$($email.status)'." }

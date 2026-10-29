@@ -111,7 +111,7 @@ if (SITE_CONFIG.buttondownUsername) {
       form.classList.add("done");
       form.innerHTML = `
         <div class="alert-copy" role="status">
-          <strong>Thanks for signing up for Bullion Radar price alerts!</strong>
+          <strong>Thanks for signing up for Bullion Reads price alerts!</strong>
           <span>Check your inbox for a confirmation email and click the link to finish.
             You'll get the daily reading on weekday mornings, and an alert as soon as silver
             moves to Favorable.</span>

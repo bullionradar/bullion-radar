@@ -1,4 +1,4 @@
-# Sends the daily Bullion Radar email to every subscriber, Monday to Friday.
+# Sends the daily Bullion Reads email to every subscriber, Monday to Friday.
 # 11:30 UTC is 7:30 AM New York time in summer and 6:30 AM in winter.
 # Running it by hand from the Actions tab only prints a preview unless you
 # choose "send" in the run options.
