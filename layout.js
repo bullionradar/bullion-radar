@@ -34,13 +34,14 @@ const elementTile = (metal) => {
   </span>`;
 };
 
-const BRAND_MARK = `
+const RADAR_MARK = `
 <svg viewBox="0 0 40 40" aria-hidden="true">
   <circle cx="20" cy="20" r="18.5" fill="none" stroke="#d4af5a" stroke-width="1.6"/>
-  <path d="M8.5,25 A12,12 0 0 1 31.5,25" fill="none" stroke="#d4af5a" stroke-width="3" stroke-linecap="round" opacity="0.45"/>
-  <path d="M8.5,25 A12,12 0 0 1 22.8,13.3" fill="none" stroke="#f3dc97" stroke-width="3" stroke-linecap="round"/>
-  <line x1="20" y1="25" x2="26.5" y2="15" stroke="#f3dc97" stroke-width="1.8" stroke-linecap="round"/>
-  <circle cx="20" cy="25" r="2.4" fill="#f3dc97"/>
+  <circle cx="20" cy="20" r="11.5" fill="none" stroke="#d4af5a" stroke-width="1" opacity="0.55"/>
+  <circle cx="20" cy="20" r="4.5" fill="none" stroke="#d4af5a" stroke-width="1" opacity="0.4"/>
+  <path d="M20,20 L20,1.5 A18.5,18.5 0 0 1 35.5,10 Z" fill="#d4af5a" opacity="0.35"/>
+  <line x1="20" y1="20" x2="35.5" y2="10" stroke="#f3dc97" stroke-width="1.6" stroke-linecap="round"/>
+  <circle cx="29" cy="13.5" r="2.2" fill="#f3dc97"/>
 </svg>`;
 
 (function () {
@@ -52,7 +53,7 @@ const BRAND_MARK = `
     "afterbegin",
     `<header class="site-header">
       <div class="container">
-        <a class="brand" href="index.html">${BRAND_MARK}<span>BULLION <span class="gold-word">READS</span></span></a>
+        <a class="brand" href="index.html">${RADAR_MARK}<span>BULLION <span class="gold-word">RADAR</span></span></a>
         <nav class="nav" aria-label="Main">
           ${link("index.html", "home", `Today<span class="long">'s reading</span>`)}
           ${link("news.html", "news", "News")}
@@ -74,14 +75,14 @@ const BRAND_MARK = `
     "beforeend",
     `<footer class="site-footer">
       <div class="container">
-        <div class="brand">${BRAND_MARK}<span>BULLION <span class="gold-word">READS</span></span></div>
-        <p><strong>Not financial advice.</strong> The Bullion Reads scale is an educational tool
+        <div class="brand">${RADAR_MARK}<span>BULLION <span class="gold-word">RADAR</span></span></div>
+        <p><strong>Not financial advice.</strong> The Bullion Radar scale is an educational tool
         that sums up current market conditions. It isn't a recommendation to buy or sell, and
         metal prices can fall as well as rise. Do your own research before you buy.</p>
-        <p class="footer-disclosure">Bullion Reads earns a commission on purchases made through
+        <p class="footer-disclosure">Bullion Radar earns a commission on purchases made through
         links in our <a href="shop.html">shop</a>. This never affects the buy scale.</p>
         <p class="footer-meta">
-          <span>&copy; ${new Date().getFullYear()} Bullion Reads</span>
+          <span>&copy; ${new Date().getFullYear()} Bullion Radar</span>
           <a href="privacy.html">Privacy</a>
           <span id="visitor-count" hidden></span>
         </p>

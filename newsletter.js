@@ -1,4 +1,4 @@
-// Builds the daily Bullion Reads email and (with --send) sends it through Buttondown.
+// Builds the daily Bullion Radar email and (with --send) sends it through Buttondown.
 // Runs on GitHub every weekday morning (.github/workflows/daily-newsletter.yml).
 //
 //   node newsletter.js          -> prints the email, sends nothing (safe test)
@@ -47,7 +47,7 @@ const day = new Date().toLocaleDateString("en-US", {
   weekday: "short", month: "short", day: "numeric", timeZone: "America/New_York",
 });
 
-const subject = `Bullion Reads, ${day}: Gold ${gold.score} ${gold.band}, Silver ${silver.score} ${silver.band}`;
+const subject = `Bullion Radar, ${day}: Gold ${gold.score} ${gold.band}, Silver ${silver.score} ${silver.band}`;
 
 const stories = site.newsHighlights()
   .map((n) => `- [${safe(n.title)}](${n.url || SITE_URL}) (${safe(n.source)})`)
@@ -73,7 +73,7 @@ ${stories}
 
 ---
 
-*Prices are COMEX futures. Not financial advice: the buy scale sums up current market conditions, and prices can still fall. You're getting this because you signed up at Bullion Reads.*
+*Prices are COMEX futures. Not financial advice: the buy scale sums up current market conditions, and prices can still fall. You're getting this because you signed up at Bullion Radar.*
 `;
 
 async function main() {
