@@ -60,6 +60,7 @@ const RADAR_MARK = `
           ${link("melt.html", "melt", "Melt values")}
           ${link("how-it-works.html", "how", "How it works")}
           ${link("shop.html", "shop", "Shop")}
+          ${link("about.html", "about", "About")}
         </nav>
       </div>
     </header>
@@ -83,6 +84,7 @@ const RADAR_MARK = `
         links in our <a href="shop.html">shop</a>. This never affects the buy scale.</p>
         <p class="footer-meta">
           <span>&copy; ${new Date().getFullYear()} Bullion Radar</span>
+          <a href="about.html">About</a>
           <a href="privacy.html">Privacy</a>
           <span id="visitor-count" hidden></span>
         </p>

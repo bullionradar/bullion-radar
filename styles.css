@@ -572,3 +572,5 @@ a.news-row:hover .news-title { color: var(--gold-deep); text-decoration: underli
   .shop-buy { grid-column: 1 / -1; justify-content: flex-start; }
 }
 .footer-disclosure a { color: var(--vault-text); }
+/* On phones the About link lives in the footer so the menu stays on one line. */
+@media (max-width: 560px) { .nav a[href="about.html"] { display: none; } }

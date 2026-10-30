@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>About | Bullion Radar</title>
+  <meta name="description" content="Who made Bullion Radar.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="about">
+  <main>
+    <section class="hero" data-hero-coin="silver">
+      <div class="container">
+        <h1>About</h1>
+        <p>Who's behind Bullion Radar.</p>
+      </div>
+    </section>
+
+    <section class="section container prose">
+      <p>Bullion Radar was created by Joshua Graham, a student at Golden Gate High School
+        who has been collecting and selling coins since he was 7.</p>
+
+      <h2>Contact</h2>
+      <p>You can reach Joshua at <span id="contact-email">his Gmail address (turn on JavaScript to see it)</span>.</p>
+    </section>
+  </main>
+
+  <script src="live-data.js"></script>
+  <script src="data.js"></script>
+  <script src="layout.js"></script>
+  <script>
+    // The address is put together here so bots scanning the page for emails don't find it.
+    const user = "joshuagraham0909";
+    const domain = "gmail.com";
+    const address = `${user}@${domain}`;
+    document.getElementById("contact-email").innerHTML = `<a href="mailto:${address}">${address}</a>`;
+  </script>
+</body>
+</html>
